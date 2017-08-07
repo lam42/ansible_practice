@@ -1,0 +1,23 @@
+---
+
+- name: Install a .deb package from the internet.
+  apt:
+    deb: https://downloads.plex.tv/plex-media-server/1.5.5.3634-995f1dead/plexmediaserver_1.5.5.3634-995f1dead_amd64.deb
+
+
+- name: enable service plex and ensure it is not masked
+  systemd:
+    name: plexmediaserver.service
+    enabled: no
+    masked: no
+
+- name: start the plex server 
+  systemd: 
+     name: plexmediaserver.service 
+     state: stopped
+
+
+
+#test can you see this 
+
+

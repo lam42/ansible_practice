@@ -1,0 +1,44 @@
+---
+
+- name: Install Raw file 
+  raw: wget -O - http://shell.ninthgate.se/packages/shell.ninthgate.se.gpg.key | sudo apt-key add -
+
+- name: echo echo
+  raw: echo "deb http://www.deb-multimedia.org wheezy main non-free" | sudo tee -a /etc/apt/sources.list.d/deb-multimedia.list
+- name: another echo 
+  raw: echo "deb http://shell.ninthgate.se/packages/debian wheezy main" | sudo tee -a /etc/apt/sources.list.d/plex.list
+
+
+tasks:
+    - name: Upgrade all the packages to the latest version
+      become: true 
+      apt:
+        upgrade: yes
+        update_cache: yes 
+
+
+
+
+
+- name: COMMON | Install basic packages
+  package: name={{ item }} state=present
+  with_items:
+    - deb-multimedia-keyring
+    #- transmission-cli
+
+
+tasks:
+    - name: Upgrade all the packages to the latest version
+      become: true 
+      apt:
+        upgrade: yes
+        update_cache: yes 
+
+
+
+- name: COMMON | Install basic packages
+  package: name={{ item }} state=present
+  with_items:
+    - plexmediaserver
+
+#test baby test

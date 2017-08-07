@@ -1,0 +1,7 @@
+---
+- name: Transmission and Plex setup 
+  hosts: all 
+  remote_user: root
+  roles:
+    - common
+    - web

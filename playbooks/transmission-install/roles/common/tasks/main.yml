@@ -1,0 +1,121 @@
+---
+- name: COMMON | Install basic packages
+  package: name={{ item }} state=present
+  with_items:
+    - transmission-daemon
+    - transmission-cli
+    
+- service: 
+    name: transmission-daemon
+    state: stopped
+
+
+- name: Creates directory
+  file:
+    path: /etc/systemd/system/transmission-daemon.service.d
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: 0775
+
+- name: ensure file exists
+  copy:
+    content: ""
+    dest: /etc/systemd/system/transmission-daemon.service.d/local.conf
+    force: no
+    group: sys
+    owner: root
+    mode: 0555
+
+
+- name: Adding lines to the local.conf
+  blockinfile:
+    path: /etc/systemd/system/transmission-daemon.service.d/local.conf
+    block: |
+      [Service]
+      ExecStart=
+      ExecStart=/usr/bin/transmission-daemon -f --log-error -g /etc/transmission-daemon
+
+
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- service: 
+    name: transmission-daemon
+    state: stopped
+
+- name: Changing permissions to the settings.json file
+  file:
+    path: /etc/transmission-daemon/settings.json
+    owner: root
+    group: root
+    mode: 0775
+
+# - name: Making changes to .json file
+#   replace: 
+#    dest= /etc/transmission-daemon/settings.json
+#    regexp='"rpc-whitelist-enabled ": true,' 
+#    replace='#server 0.rhel.pool.ntp.org iburst'
+
+- name: replace line
+  lineinfile: 
+    dest: /etc/transmission-daemon/settings.json
+    regexp: '^(.*)"rpc-whitelist-enabled": true,(.*)$' 
+    line: '    "rpc-whitelist-enabled": false,'
+    backrefs: yes
+
+
+- name: replace line
+  lineinfile: 
+    dest: /etc/transmission-daemon/settings.json
+    regexp: '^(.*)rpc-password": "password",(.*)$' 
+    line: '    "rpc-password":"Welcome02!",'
+    backrefs: yes
+
+
+
+- name: replace line
+  lineinfile: 
+    dest: /etc/transmission-daemon/settings.json
+    regexp: '^(.*)rpc-username": "transmission",(.*)$' 
+    line: '    "rpc-username": "johnlam90",'
+    backrefs: yes
+
+
+
+
+- name: Creates incomplete directory
+  file:
+    path: /var/lib/transmission-daemon/incomplete
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
+
+- name: Change dowload queue size to 5
+  lineinfile: 
+    dest: /etc/transmission-daemon/settings.json
+    regexp: '^(.*)download-queue-size": 5,(.*)$' 
+    line: '    "incomplete-dir": "/var/lib/transmission-daemon/incomplete",'
+    backrefs: yes
+
+- name: replace line
+  lineinfile: 
+    dest: /etc/transmission-daemon/settings.json
+    regexp: '^umask": 18,(.*)$' 
+    line: '    "umask": 002,'
+    backrefs: yes
+
+- service: 
+    name: transmission-daemon
+    state: reloaded
+
+
+
+- service: 
+    name: transmission-daemon
+    state: restarted
+
+
+

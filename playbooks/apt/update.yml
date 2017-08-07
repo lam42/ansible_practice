@@ -1,0 +1,27 @@
+---
+# Run with ansible-playbook <filename> -k
+#   (make sure to add the IPs of machines you want to manage to /etc/ansible/hosts first)
+
+- hosts: all
+  
+  tasks:
+    - name: Upgrade all the packages to the latest version
+      become: true 
+      apt:
+        upgrade: yes
+        update_cache: yes 
+    - name: Remove dependencies that are no longer required
+      apt:
+        autoremove: yes
+   
+    - name: COMMON | Install basic packages
+      package: name={{ item }} state=present
+      with_items:
+        - wget
+        - vim
+        - nano
+        - curl
+        - cmatrix
+        - nmap 
+        - python 
+

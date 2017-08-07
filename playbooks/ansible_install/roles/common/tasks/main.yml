@@ -25,5 +25,3 @@
   
 
 
-- name: Update Submodules
-  raw: (git submodule update --init --recurcive)

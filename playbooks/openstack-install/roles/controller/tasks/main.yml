@@ -2,7 +2,7 @@
 
 - name: Replace default /etc/hosts file with configured hosts file from templates
   copy:
-    template: src: hosts
+    template: src=hosts
     dest: /etc/hosts
     owner: root
     group: root
@@ -11,7 +11,7 @@
 
 - name: Replace default /etc/hostname file with configured hostname file from templates
   copy:
-    template: src: hostname
+    template: src=hostname
     dest: /etc/hostname
     owner: root
     group: root
@@ -62,11 +62,7 @@
 
 - name: Create and edit the/etc/my.cnf.d/openstack.cnf file
   copy: 
-<<<<<<< HEAD
-    src: /Users/johnlam/ansible_practice/playbooks/openstack-install/roles/controller/templates/openstack.cnf
-=======
-    template: src: openstack.cnf
->>>>>>> 7d0610eb463618a4a68af5ef086d7fe50ae247ab
+    template: src=openstack.cnf
     dest: /etc/my.cnf.d/openstack.cnf
     owner: root
     group: root 
@@ -101,11 +97,3 @@
 - name: enable memcached
   command: sudo systemctl enable memcached.service 
   notify: start memcached
-
-
-  
-
-
-
-
-

@@ -95,7 +95,7 @@
   
 
 - name: enable memcached
-  command: systemctl enable memcached.service 
+  command: sudo systemctl enable memcached.service 
   notify: start memcached
 
 

@@ -60,7 +60,7 @@
 
 - name: Create and edit the/etc/my.cnf.d/openstack.cnf file
   copy: 
-    src: openstack.cnf
+    src: /Users/johnlam/ansible_practice/playbooks/openstack-install/roles/controller/templates/openstack.cnf
     dest: /etc/my.cnf.d/openstack.cnf
     owner: root
     group: root 

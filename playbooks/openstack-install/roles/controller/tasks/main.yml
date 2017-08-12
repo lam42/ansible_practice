@@ -9,13 +9,13 @@
     mode: 0744
 
 
-- name: Replace default /etc/hostname file with configured hostname file from templates
-  copy:
-    src: hostname
-    dest: /etc/hostname
-    owner: root
-    group: root
-    mode: 0744
+# - name: Replace default /etc/hostname file with configured hostname file from templates
+#   copy:
+#     src: hostname
+#     dest: /etc/hostname
+#     owner: root
+#     group: root
+#     mode: 0744
 
 
 

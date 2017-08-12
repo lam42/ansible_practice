@@ -19,12 +19,12 @@
 
 
 
-- name: Install the latest version of Chrony 
-  package:
-    name: chrony
-    state: latest
-  notify: enable chronyd 
-  notify: restart chronyd
+# - name: Install the latest version of Chrony 
+#   package:
+#     name: chrony
+#     state: latest
+#   notify: enable chronyd 
+#   notify: restart chronyd
 
 
 - name: Install the latest verion of 

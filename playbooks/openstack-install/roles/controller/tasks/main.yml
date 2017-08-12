@@ -83,7 +83,10 @@
   package: 
     name: python-memcached
     state: latest 
-  notify: enable memcached
+  
+
+- name: enable memcached
+  command: systemctl enable memcached.service 
   notify: start memcached
 
 

@@ -49,6 +49,25 @@
 #   template: src={{ mysql_conf_tpl }} dest={{ mysql_conf_dir[ansible_distribution] }}/{{ mysql_conf_file }} owner=root group=root mode=0644
 #   when: mysql_conf_tpl != 'change_me'
 #   notify: restart mysql
+- name: Set root user password
+  # If .my.cnf already exists, this will cause an mysql-root-password update.
+  mysql_user:
+    login_user: root
+    login_password: and345
+    name: root
+    password: "{{ mysql_root_password}}"
+    check_implicit_admin: true
+
+- name: Create .my.cnf
+  template:
+   src: "client.my.cnf.j2"
+   dest: "/root/.my.cnf"
+   owner: root
+   group: root
+   mode: 0600
+
+
+
 
 # - name: Start and enable service
 #   service: name=mysql state=started enabled=yes
@@ -69,7 +88,7 @@
 - name: enable mariadb
   command: systemctl enable mariadb.service
   notify: start mariadb
-  ignore_erros: yes
+  ignore_errors: yes
   
 #- name: still fixing 
 #  command: mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/ 

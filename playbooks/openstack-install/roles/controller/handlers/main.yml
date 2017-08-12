@@ -9,7 +9,7 @@
   command: systemctl enable mariadb.service
 
 - name: start mariadb
-  command: name=mariadb.service state=started
+  command: name=mariadb state=started
 
   #####RABBIT MQ SETUP######
 - name: enable rabbitmq-server
@@ -25,8 +25,9 @@
 - name: set permissions
   command: rabbitmqctl set_permissions openstack ".*" ".*" ".*"
 
-- name: enable memcached
-  command: systemctl enable memcached.service 
+- name: start memcached
+  service: name=memcached state=started 
+
 
 - name: start rabbitmq-server
   service: name=memcached.service state=started 

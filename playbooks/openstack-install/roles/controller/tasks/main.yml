@@ -1,20 +1,15 @@
 ---
 
 - name: Replace default /etc/hosts file with configured hosts file from templates
-  copy:
-    template: src=hosts dest=/etc/hosts
-    owner: root
-    group: root
-    mode: 0744
+  template: src=hosts  dest=/etc/hosts
+    #owner: root
+    #group: root
+    #mode: 0744
 
 
 - name: Replace default /etc/hostname file with configured hostname file from templates
-  copy:
-    template: src=hostname
-    dest: /etc/hostname
-    owner: root
-    group: root
-    mode: 0744
+  template: src=hostname dest=/etc/hostname
+  
 
 
 
@@ -41,7 +36,10 @@
   with_items:
     - python-openstackclient
     - openstack-selinux
-   
+    - mariadb
+    - mariadb-server
+    - python2-PyMySQL
+    - memcached   
     
 ######MY SQL SECURE SETUP ALONG WITH MARIADB#######
 
@@ -60,16 +58,24 @@
 
 
 - name: Create and edit the/etc/my.cnf.d/openstack.cnf file
-  copy: 
-    template: src=openstack.cnf 
-    dest: /etc/my.cnf.d/openstack.cnf
-    owner: root
-    group: root 
-    mode: 0744
-  notify: enable mariadb
-  notify: start mariadb 
+  template: src=openstack.cnf dest=/etc/my.cnf.d/openstack.cnf
+ # owner: root
+ # group: root 
+ # mode: 0744
+  
 
+- name: enable mariadb
+  command: systemctl enable mariadb.service
+  
+#- name: still fixing 
+#  command: mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/ 
+  
+#- name: still fixing 
+#  command: mysql_secure_installation
+#  notify: start mariadb 
 
+#- name: start mariadb
+#  command: systemctl start mariadb.service
 
 - name: rabbitmq-server 
   package: 
@@ -83,14 +89,23 @@
 - name: start rabbitmq-server
   command: systemctl start rabbitmq-server.service
 
-- name: add user
-  command: rabbitmqctl add_user openstack RABBIT_PASS
-  notify: set permissions
+#- name: add user
+#  command: rabbitmqctl add_user openstack RABBIT_PASS
+  
+- name: set permissions
+  command: rabbitmqctl set_permissions openstack ".*" ".*" ".*"
 
 - name: install memcached python-memcached
   package: 
     name: python-memcached
     state: latest 
+
+- name: replace line
+  lineinfile: 
+    dest: /etc/sysconfig/memcached
+    regexp: '^(.*)OPTIONS="-l 127.0.0.1,::1"(.*)$' 
+    line: 'OPTIONS="-l 127.0.0.1,::1,controller"'
+    backrefs: yes
   
 
 - name: enable memcached

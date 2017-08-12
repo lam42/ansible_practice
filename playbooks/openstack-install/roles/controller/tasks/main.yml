@@ -79,7 +79,6 @@
 - mysql_user:
     name: keystone
     password: KEYSTONE_DBPASS
-    priv: '*.*:ALL,GRANT'
     host_all: yes
     state: present
 
@@ -177,3 +176,39 @@
 - name: enable memcached
   command: sudo systemctl enable memcached.service 
   notify: start memcached
+
+
+
+
+- name: Adding ServerName "controller" to httpd.conf file
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    line: 'ServerName controller'
+
+- name: Create a link to the /usr/share/keystone/wsgi-keystone.conf file
+  file:
+    src: /usr/share/keystone/wsgi-keystone.conf
+    dest: /etc/httpd/conf.d/
+    owner: root
+    group: root
+    state: link
+
+
+- name: Enable httpd service 
+  command: systemctl enable httpd.service
+  notify: start httpd 
+
+
+- command: export OS_USERNAME=admin
+- command: export OS_PASSWORD=ADMIN_PASS
+- command: export OS_PROJECT_NAME=admin
+- command: export OS_USER_DOMAIN_NAME=Default
+- command: export OS_PROJECT_DOMAIN_NAME=Default
+- command: export OS_AUTH_URL=http://controller:35357/v3 $ export OS_IDENTITY_API_VERSION=3
+
+
+
+
+
+
+

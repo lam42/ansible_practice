@@ -1,0 +1,6 @@
+---
+- name: Installing Openstack on the controller 
+  hosts: all 
+  remote_user: root
+  roles:
+    - controller 

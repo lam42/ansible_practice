@@ -19,12 +19,14 @@
 
 
 
-# - name: Install the latest version of Chrony 
-#   package:
-#     name: chrony
-#     state: latest
-#   notify: enable chronyd 
-#   notify: restart chronyd
+- name: Install the latest version of Chrony 
+  package:
+    name: chrony
+    state: latest
+
+- name: enable chronyd 
+  command: systemctl enable chronyd.service
+  notify: restart chronyd
 
 
 - name: Install the latest verion of centos-release-openstack-ocata
@@ -74,16 +76,23 @@
   package: 
     name: rabbitmq-server
     state: latest 
-  notify: enable rabbitmq-server
+
+- name: enable rabbitmq-server
+  command: systemctl enable rabbitmq-server
   notify: start rabbitmq-server
-  notify: add user
+
+- name: add user
+  command: rabbitmqctl add_user openstack RABBIT_PASS
   notify: set permissions
 
 - name: install memcached python-memcached
   package: 
     name: python-memcached
     state: latest 
-  notify: enable memcached
+  
+
+- name: enable memcached
+  command: systemctl enable memcached.service 
   notify: start memcached
 
 

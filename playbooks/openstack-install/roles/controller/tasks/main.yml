@@ -188,13 +188,12 @@
     line: 'ServerName controller'
 
 - name: Create a link to the /usr/share/keystone/wsgi-keystone.conf file
-  file:
-    src: /usr/share/keystone/wsgi-keystone.conf
-    dest: /etc/httpd/conf.d/
-    owner: root
-    group: root
-    state: link
-
+#  file:
+#    dest: /usr/share/keystone/wsgi-keystone.conf
+#    src: /etc/httpd/conf.d/
+#    state: link
+#    mode: 0755
+  command: ln -s /usr/share/keystone/wsgi-keystone.conf /etc/httpd/conf.d/ 
 
 - name: Enable httpd service 
   command: systemctl enable httpd.service

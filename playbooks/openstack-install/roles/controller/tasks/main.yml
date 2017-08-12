@@ -81,6 +81,7 @@
 
 - name: Populate the Identity service database
   command: su -s /bin/sh -c "keystone-manage db_sync" keystone
+  warn: no
 
 - name: initialize Fernet key repositories - 1
   command: keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
@@ -166,4 +167,5 @@
 
 - name: enable memcached
   command: sudo systemctl enable memcached.service 
+  warn: no
   notify: start memcached

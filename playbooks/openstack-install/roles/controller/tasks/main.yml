@@ -202,15 +202,58 @@
   notify: start httpd 
 
 
-- shell: export OS_USERNAME=admin
-- shell: export OS_PASSWORD=ADMIN_PASS
-- shell: export OS_PROJECT_NAME=admin
-- shell: export OS_USER_DOMAIN_NAME=Default
-- shell: export OS_PROJECT_DOMAIN_NAME=Default
-- shell: export OS_AUTH_URL=http://controller:35357/v3 $ export OS_IDENTITY_API_VERSION=3
+# - shell: export OS_USERNAME=admin
+# - shell: export OS_PASSWORD=ADMIN_PASS
+# - shell: export OS_PROJECT_NAME=admin
+# - shell: export OS_USER_DOMAIN_NAME=Default
+# - shell: export OS_PROJECT_DOMAIN_NAME=Default
+# - shell: export OS_AUTH_URL=http://controller:35357/v3 $ export OS_IDENTITY_API_VERSION=3
 
 
+#########OPENSTACK DOMAIN CREATION###########
 
+
+- name: Creating OPENSTACK Service Project
+  os_project:
+    cloud: mycloud
+    state: present
+    name: service
+    description: Service Project 
+    domain_id: default
+    enabled: True
+
+
+- name: Creating OPENSTACK Demo Project
+  os_project:
+    cloud: mycloud
+    state: present
+    name: demo
+    description: Demo Project 
+    domain_id: default
+    enabled: True
+
+
+- name: Create the demo user 
+  os_user:
+    cloud: mycloud
+    state: present
+    name: demouser
+    password: "{{demo_user_pass}}"
+    domain: default
+    default_project: demo
+
+- name: Create user role 
+  os_keystone_role:
+    cloud: mycloud
+    state: present
+    name: user 
+
+- name: Add the user role to the demo user of thedemo project
+  os_user_role:
+    cloud: mycloud
+    user: demo
+    role: user
+    project: demo
 
 
 

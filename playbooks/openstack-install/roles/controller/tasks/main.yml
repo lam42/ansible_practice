@@ -1,0 +1,95 @@
+---
+
+- name: Replace default /etc/hosts file with configured hosts file from templates
+  copy:
+    src: hosts
+    dest: /etc/hosts
+    owner: root
+    group: root
+    mode: 0744
+
+
+- name: Replace default /etc/hostname file with configured hostname file from templates
+  copy:
+    src: hostname
+    dest: /etc/hostname
+    owner: root
+    group: root
+    mode: 0744
+
+
+
+- name: Install the latest version of Chrony 
+  package:
+    name: chrony
+    state: latest
+  notify: enable chronyd 
+  notify: restart chronyd
+
+
+- name: Install the latest verion of 
+  package: 
+    name: centos-release-openstack-ocata
+    state: latest 
+
+- name: upgrade all packages
+  yum: name=* state=latest
+
+- name: COMMON | Install basic packages 
+  package: name={{ item }} state=present
+  with_items:
+    - python-openstackclient
+    - openstack-selinux
+   
+    
+######MY SQL SECURE SETUP ALONG WITH MARIADB#######
+
+
+- name: Add configuration
+  template: src={{ mysql_conf_tpl }} dest={{ mysql_conf_dir[ansible_distribution] }}/{{ mysql_conf_file }} owner=root group=root mode=0644
+  when: mysql_conf_tpl != 'change_me'
+  notify: restart mysql
+
+- name: Start and enable service
+  service: name=mysql state=started enabled=yes
+
+- include: mysql_secure_installation.yml
+  when: mysql_secure_installation and mysql_root_password is defined
+
+
+
+- name: Create and edit the/etc/my.cnf.d/openstack.cnf file
+  copy: 
+    src: openstack.cnf
+    dest: /etc/my.cnf.d/openstack.cnf
+    owner: root
+    group: root 
+    mode: 0744
+  notify: enable mariadb
+  notify: start mariadb 
+
+
+
+- name: rabbitmq-server 
+  package: 
+    name: rabbitmq-server
+    state: latest 
+  notify: enable rabbitmq-server
+  notify: start rabbitmq-server
+  notify: add user
+  notify: set permissions
+
+- name: install memcached python-memcached
+  package: 
+    name: python-memcached
+    state: latest 
+  notify: enable memcached
+  notify: start memcached
+
+
+  
+
+
+
+
+

@@ -1,0 +1,35 @@
+- name: enable chronyd 
+  command: systemctl enable chronyd.service
+
+- name: start chronyd
+  service: name=chronyd.service state=started
+
+
+- name: enable mariadb 
+  command: systemctl enable mariadb.service
+
+- name: start mariadb
+  command: name=mariadb.service state=started
+
+  #####RABBIT MQ SETUP######
+- name: enable rabbitmq-server
+  command: systemctl enable rabbitmq-server.service 
+
+- name: start rabbitmq-server
+  service: name=rabbitmq-server.service state=started 
+
+
+- name: add user 
+  command: rabbitmqctl add_user openstack RABBIT_PASS
+
+- name: set permissions
+  command: rabbitmqctl set_permissions openstack ".*" ".*" ".*"
+
+- name: enable memcached
+  command: systemctl enable memcached.service 
+
+- name: start rabbitmq-server
+  service: name=memcached.service state=started 
+
+- name: restart mysql
+  service: name=mysql state=restarted

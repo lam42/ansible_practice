@@ -1,7 +1,7 @@
 - name: enable chronyd 
   command: systemctl enable chronyd.service
 
-- name: start chronyd
+- name: restart chronyd
   service: name=chronyd.service state=started
 
 

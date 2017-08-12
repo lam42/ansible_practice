@@ -2,20 +2,20 @@
 
 - name: Replace default /etc/hosts file with configured hosts file from templates
   copy:
-    src: hosts
+    template: src: hosts
     dest: /etc/hosts
     owner: root
     group: root
     mode: 0744
 
 
-# - name: Replace default /etc/hostname file with configured hostname file from templates
-#   copy:
-#     src: hostname
-#     dest: /etc/hostname
-#     owner: root
-#     group: root
-#     mode: 0744
+- name: Replace default /etc/hostname file with configured hostname file from templates
+  copy:
+    template: src: hostname
+    dest: /etc/hostname
+    owner: root
+    group: root
+    mode: 0744
 
 
 
@@ -62,7 +62,11 @@
 
 - name: Create and edit the/etc/my.cnf.d/openstack.cnf file
   copy: 
+<<<<<<< HEAD
     src: /Users/johnlam/ansible_practice/playbooks/openstack-install/roles/controller/templates/openstack.cnf
+=======
+    template: src: openstack.cnf
+>>>>>>> 7d0610eb463618a4a68af5ef086d7fe50ae247ab
     dest: /etc/my.cnf.d/openstack.cnf
     owner: root
     group: root 

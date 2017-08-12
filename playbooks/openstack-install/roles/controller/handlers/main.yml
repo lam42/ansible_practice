@@ -9,7 +9,7 @@
   command: systemctl enable mariadb.service
 
 - name: start mariadb
-  command: name=mariadb state=started
+  service: name=mariadb state=started
 
   #####RABBIT MQ SETUP######
 - name: enable rabbitmq-server

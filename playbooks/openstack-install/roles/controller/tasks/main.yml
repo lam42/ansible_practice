@@ -68,6 +68,8 @@
 
 - name: enable mariadb
   command: systemctl enable mariadb.service
+  notify: start mariadb
+  ignore_erros: yes
   
 #- name: still fixing 
 #  command: mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/ 
@@ -76,9 +78,9 @@
 #  command: mysql_secure_installation
 #  notify: start mariadb 
 
-- name: start mariadb
-  command: systemctl start mariadb.service
-  ignore_errors: yes 
+# - name: start mariadb
+#   command: systemctl start mariadb.service
+#   ignore_errors: yes 
 
 - name: rabbitmq-server 
   package: 
@@ -87,10 +89,10 @@
 
 - name: enable rabbitmq-server
   command: systemctl enable rabbitmq-server.service
-  
+  notify: start rabbitmq-server
 
-- name: start rabbitmq-server
-  command: systemctl start rabbitmq-server.service
+# - name: start rabbitmq-server
+#   command: systemctl start rabbitmq-server.service
 
 #- name: add user
 #  command: rabbitmqctl add_user openstack RABBIT_PASS

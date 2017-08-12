@@ -16,7 +16,7 @@
   command: systemctl enable rabbitmq-server.service 
 
 - name: start rabbitmq-server
-  service: name=rabbitmq-server.service state=started 
+  service: name=rabbitmq-server state=started 
 
 
 - name: add user 

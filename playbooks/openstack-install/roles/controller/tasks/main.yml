@@ -78,8 +78,11 @@
     state: latest 
 
 - name: enable rabbitmq-server
-  command: systemctl enable rabbitmq-server
-  notify: start rabbitmq-server
+  command: systemctl enable rabbitmq-server.service
+  
+
+- name: start rabbitmq-server
+  command: systemctl start rabbitmq-server.service
 
 - name: add user
   command: rabbitmqctl add_user openstack RABBIT_PASS

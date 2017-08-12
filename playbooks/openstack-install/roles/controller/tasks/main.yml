@@ -200,12 +200,12 @@
   notify: start httpd 
 
 
-- command: export OS_USERNAME=admin
-- command: export OS_PASSWORD=ADMIN_PASS
-- command: export OS_PROJECT_NAME=admin
-- command: export OS_USER_DOMAIN_NAME=Default
-- command: export OS_PROJECT_DOMAIN_NAME=Default
-- command: export OS_AUTH_URL=http://controller:35357/v3 $ export OS_IDENTITY_API_VERSION=3
+- shell: export OS_USERNAME=admin
+- shell: export OS_PASSWORD=ADMIN_PASS
+- shell: export OS_PROJECT_NAME=admin
+- shell: export OS_USER_DOMAIN_NAME=Default
+- shell: export OS_PROJECT_DOMAIN_NAME=Default
+- shell: export OS_AUTH_URL=http://controller:35357/v3 $ export OS_IDENTITY_API_VERSION=3
 
 
 

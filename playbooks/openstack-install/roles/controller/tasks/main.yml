@@ -2,8 +2,7 @@
 
 - name: Replace default /etc/hosts file with configured hosts file from templates
   copy:
-    template: src=hosts
-    dest: /etc/hosts
+    template: src=hosts dest=/etc/hosts
     owner: root
     group: root
     mode: 0744
@@ -62,7 +61,7 @@
 
 - name: Create and edit the/etc/my.cnf.d/openstack.cnf file
   copy: 
-    template: src=openstack.cnf
+    template: src=openstack.cnf 
     dest: /etc/my.cnf.d/openstack.cnf
     owner: root
     group: root 

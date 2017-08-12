@@ -79,6 +79,15 @@
     host_all: yes
     state: present
 
+- name: Populate the Identity service database
+  command: su -s /bin/sh -c "keystone-manage db_sync" keystone
+
+- name: initialize Fernet key repositories - 1
+  command: keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
+
+- name: initialize Fernet key repositories - 2
+  command: keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
+
 
 # - name: Start and enable service
 #   service: name=mysql state=started enabled=yes

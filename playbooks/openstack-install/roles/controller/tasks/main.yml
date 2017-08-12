@@ -23,8 +23,8 @@
   notify: restart chronyd
 
 
- - name: disable selinux
-   action: selinux policy=targeted state=permissive
+- name: disable selinux
+  action: selinux policy=targeted state=permissive
 
 
 - name: Install the latest verion of centos-release-openstack-ocata
@@ -84,6 +84,7 @@
 
 - name: Populate the Identity service database
   command: su -s /bin/sh -c "keystone-manage db_sync" keystone
+#  warn: no
 
 - name: initialize Fernet key repositories - 1
   command: keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
@@ -91,11 +92,11 @@
 - name: initialize Fernet key repositories - 2
   command: keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
 
-- command: keystone-manage bootstrap --bootstrap-password ADMIN_PASS 
-- command: keystone-manage bootstrap --bootstrap-admin-url http://controller:35357/v3/ 
-- command: keystone-manage bootstrap --bootstrap-internal-url http://controller:5000/v3/  
-- command: keystone-manage bootstrap --bootstrap-public-url http://controller:5000/v3/ 
-- command: keystone-manage bootstrap --bootstrap-region-id RegionOne
+#- command: keystone-manage bootstrap --bootstrap-password ADMIN_PASS --bootstrap-password ADMIN_PASS 
+- command: keystone-manage bootstrap --bootstrap-password ADMIN_PASS --bootstrap-admin-url http://controller:35357/v3/ 
+- command: keystone-manage bootstrap --bootstrap-password ADMIN_PASS --bootstrap-internal-url http://controller:5000/v3/  
+- command: keystone-manage bootstrap --bootstrap-password ADMIN_PASS --bootstrap-public-url http://controller:5000/v3/ 
+- command: keystone-manage bootstrap --bootstrap-password ADMIN_PASS --bootstrap-region-id RegionOne
 
 
 # - name: Start and enable service
@@ -175,6 +176,7 @@
 
 - name: enable memcached
   command: sudo systemctl enable memcached.service 
+ # warn: no
   notify: start memcached
 
 

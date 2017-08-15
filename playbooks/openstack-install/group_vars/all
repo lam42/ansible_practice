@@ -2,4 +2,4 @@ mysql_root_password: and345
 demo_user_pass: and345
 keystone_password: and345
 glance_password: and345 
-
+region: RegionOne

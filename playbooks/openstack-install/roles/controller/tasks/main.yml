@@ -217,7 +217,7 @@
 - name: give permissions to keystone database
   mysql_user:
     name: glance
-    password: and345
+    password: "{{glance_password}}"
     priv: '*.*:ALL,GRANT'
     state: present
 
@@ -225,7 +225,7 @@
 - name: give permissions to keystone database
   mysql_user:
     name: glance
-    password: and345
+    password: "{{glance_password}}"
     priv: '*.*:ALL,GRANT'
     host_all: yes
     state: present
@@ -241,13 +241,15 @@
 
 
 - name: Create a glance service entity 
-  shell: source /root/admin-openrc.sh && openstack service list | grep 'glance' || openstack service create --name glance  --description "OpenStack Image" image
+  shell: source /root/admin-openrc.sh && openstack service list | grep 'image' || openstack service create --name glance  --description "OpenStack Image" image
 
+- shell: source /root/admin-openrc.sh && openstack service list | awk '/ image / {print $2}'
+  register: SERVICE_ID
 
-# - name: create end points for public internal and admin ####NEEDS MORE WORK########
-#   shell: source /root/admin-openrc.sh && openstack endpoint create --region RegionOne  image public http://controller:9292
-# - shell: source /root/admin-openrc.sh && openstack endpoint create --region RegionOne  image internal http://controller:9292
-# - shell: source /root/admin-openrc.sh && openstack endpoint create --region RegionOne  image admin http://controller:9292
+- shell: source /root/admin-openrc.sh && openstack endpoint list | grep {{ SERVICE_ID.stdout }} || openstack endpoint create  --region  {{ region }} {{ SERVICE_ID.stdout }} public http://controller:9292  
+- shell: source /root/admin-openrc.sh && openstack endpoint list | grep {{ SERVICE_ID.stdout }} || openstack endpoint create  --region  {{ region }} {{ SERVICE_ID.stdout }} internal http://controller:9292 
+- shell: source /root/admin-openrc.sh && openstack endpoint list | grep {{ SERVICE_ID.stdout }} || openstack endpoint create  --region  {{ region }} {{ SERVICE_ID.stdout }} admin http://controller:9292 
+
 
 
 

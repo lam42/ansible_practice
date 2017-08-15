@@ -18,19 +18,16 @@
 ##############################################################################################################################
 
 
-
-
-
 - name: Replace default /etc/hosts file with configured hosts file from templates
   template: src=hosts  dest=/etc/hosts
     #owner: root
     #group: root
     #mode: 0744
 
-
 - name: Replace default /etc/hostname file with configured hostname file from templates
   template: src=hostname dest=/etc/hostname
   
+
 
 - name: install MySQL-python
   package:
@@ -44,6 +41,8 @@
   package:
     name: centos-release-openstack-ocata
     state: present
+
+
 
 - name: upgrade all packages
   yum: name=* state=latest
@@ -129,6 +128,16 @@
   mysql_db:
     name: keystone
     state: present
+  tags: database
+
+- name: give permissions to keystone database
+  mysql_user:
+    name: keystone
+    password: "{{keystone_password}}"
+    priv: '*.*:ALL,GRANT'
+    host: localhost
+    state: present
+  tags: database
 
 
 - name: give permissions to keystone database
@@ -136,8 +145,10 @@
     name: keystone
     password: "{{keystone_password}}"
     priv: '*.*:ALL,GRANT'
-    #host_all: yes
+    host: '%'
     state: present
+  tags: database
+
 
 - name: COMMON | Install openstack-keystone httpd mod_wsgi
   package: name={{ item }} state=present
@@ -231,24 +242,25 @@
   mysql_db:
     name: glance
     state: present
+  tags: database
 
+- name: give permissions to keystone database
+  mysql_user:
+    name: glance
+    password: "{{glance_password}}"
+    host: localhost
+    priv: '*.*:ALL,GRANT'
+    state: present
+  tags: database
 
 - name: give permissions to keystone database
   mysql_user:
     name: glance
     password: "{{glance_password}}"
     priv: '*.*:ALL,GRANT'
+    host: '%'
     state: present
-
-
-- name: give permissions to keystone database
-  mysql_user:
-    name: glance
-    password: "{{glance_password}}"
-    priv: '*.*:ALL,GRANT'
-    host_all: yes
-    state: present
-
+  tags: database
 
 
 - name: create glance user
@@ -309,6 +321,181 @@
   shell: source /root/admin-openrc.sh && openstack image list | grep 'cirros' || openstack image create "cirros" --file cirros-0.3.5-x86_64-disk.img  --disk-format qcow2 --container-format bare  --public  < /root/cirros-0.3.5-x86_64-disk.img
 
 ############################################################# END ###################################################################
+
+
+####################################################### NOVA CONFIGURATION ###################################################
+
+######CREATE DATABASES ##########
+
+- name: Create a new database with name 'nova_api'
+  mysql_db:
+    name: nova_api
+    state: present
+  tags: database
+
+- name: give permissions to nova_api database
+  mysql_user:
+    name: nova_api
+    password: "{{nova_api_password}}"
+    priv: '*.*:ALL,GRANT'
+    host: localhost
+    state: present
+  tags: database
+
+- name: give permissions to nova_api database
+  mysql_user:
+    name: nova_api
+    password: "{{nova_api_password}}"
+    priv: '*.*:ALL,GRANT'
+    host: '%'
+    state: present
+  tags: database
+
+
+- name: Create a new database with name 'nova'
+  mysql_db:
+    name: nova
+    state: present
+  tags: database
+
+- name: give permissions to nova database
+  mysql_user:
+    name: nova
+    password: "{{nova_password}}"
+    priv: '*.*:ALL,GRANT'
+    host: localhost
+    state: present
+  tags: database
+
+- name: give permissions nova database
+  mysql_user: 
+    name: keystone 
+    host: "%" 
+    password: "{{ nova_password }}" priv='keystone.*:ALL'
+  tags: database
+
+
+- name: Create a new database with name 'nova_cell0'
+  mysql_db:
+    name: nova_cell0
+    state: present
+  tags: database
+
+- name: give permissions to nova_cell0 database
+  mysql_user:
+    name: nova_cell0
+    password: "{{nova_cell0_password}}"
+    priv: '*.*:ALL,GRANT'
+    host: localhost
+    state: present
+  tags: database
+
+- name: give permissions to nova_cell0 database
+  mysql_user:
+    name: nova_cell0
+    password: "{{nova_cell0_password}}"
+    priv: '*.*:ALL,GRANT'
+    host: '%'
+    state: present
+  tags: database
+
+###### CREATE USERS ######
+
+
+#### NOVA
+- name: Creating a user named 'nova'
+  shell: source /root/admin-openrc.sh && openstack user list| grep 'nova' || openstack user create --password {{nova_user}} nova
+  ignore_errors: yes
+
+
+
+- name: Add the admin role to nova user 
+  shell: source /root/admin-openrc.sh && openstack role add --project service --user nova admin
+  ignore_errors: yes
+
+
+- name: Create a nova service entity 
+  shell: source /root/admin-openrc.sh && openstack service list | grep 'compute' || openstack service create --name nova  --description "OpenStack Compute" compute
+
+- shell: source /root/admin-openrc.sh && openstack service list | awk '/ compute / {print $2}'
+  register: SERVICE_ID
+  tags: service
+
+- shell: source /root/admin-openrc.sh && openstack endpoint list | grep {{ SERVICE_ID.stdout }} || openstack endpoint create  --region  {{ region }} {{ SERVICE_ID.stdout }} public http://controller:8774/v2.1
+- shell: source /root/admin-openrc.sh && openstack endpoint list | grep {{ SERVICE_ID.stdout }} || openstack endpoint create  --region  {{ region }} {{ SERVICE_ID.stdout }} internal http://controller:8774/v2.1
+- shell: source /root/admin-openrc.sh && openstack endpoint list | grep {{ SERVICE_ID.stdout }} || openstack endpoint create  --region  {{ region }} {{ SERVICE_ID.stdout }} admin http://controller:8774/v2.1 
+
+##### PLACEMENT 
+
+- name: Creating a user named 'PLACEMENT'
+  shell: source /root/admin-openrc.sh && openstack user list| grep 'placement' || openstack user create --password {{placement_user}} placement
+  ignore_errors: yes
+
+
+
+- name: Add the admin role to placement user 
+  shell: source /root/admin-openrc.sh && openstack role add --project service --user placement admin
+  ignore_errors: yes
+
+
+- name: Create a placement service entity 
+  shell: source /root/admin-openrc.sh && openstack service list | grep 'placement' || openstack service create --name placement  --description "PLACEMENT API" placement
+
+- shell: source /root/admin-openrc.sh && openstack service list | awk '/ placement / {print $2}'
+  register: SERVICE_ID
+
+- shell: source /root/admin-openrc.sh && openstack endpoint list | grep {{ SERVICE_ID.stdout }} || openstack endpoint create  --region  {{ region }} {{ SERVICE_ID.stdout }} public http://controller:8778
+- shell: source /root/admin-openrc.sh && openstack endpoint list | grep {{ SERVICE_ID.stdout }} || openstack endpoint create  --region  {{ region }} {{ SERVICE_ID.stdout }} internal http://controller:8778
+- shell: source /root/admin-openrc.sh && openstack endpoint list | grep {{ SERVICE_ID.stdout }} || openstack endpoint create  --region  {{ region }} {{ SERVICE_ID.stdout }} admin http://controller:8778  
+
+
+
+###### INSTALL PACKAGES 
+
+
+- name: COMMON | Install basic packages
+  package: name={{ item }} state=present
+  with_items:
+    - openstack-nova-api
+    - openstack-nova-conductor
+    - openstack-nova-console
+    - openstack-nova-novncproxy
+    - openstack-nova-scheduler
+    - openstack-nova-placement-api
+
+
+
+
+- name: Replace default /etc/nova/nova.conf file with configured 'nova.conf' file from templates
+  template: src=nova.conf dest=/etc/nova/nova.conf
+  
+
+
+- name: Replace default 00-nova-placement-api.conf file with the file from templates
+  template: src=00-nova-placement-api.conf dest=/etc/httpd/conf.d/00-nova-placement-api.conf
+
+
+- name: Restart httpd
+  command: systemctl restart httpd 
+
+- name: Populate the nova-api database
+  command: su -s /bin/sh -c "nova-manage api_db sync" nova
+  ignore_errors: yes 
+
+
+
+- name: Register the cell0 database 
+  command: su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova
+  ignore_errors: yes 
+
+- name: create the cell1 cell 
+  shell: nova-manage cell_v2 list_cells | grep 'cell1' || su -s /bin/sh -c "nova-manage cell_v2 create_cell --name=cell1 --verbose" nova
+
+- name: Populate the nova database
+  command: su -s /bin/sh -c "nova-manage db sync" nova
+  ignore_errors: yes 
+  notify: start nova
+
 
 
 

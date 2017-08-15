@@ -4,3 +4,8 @@ keystone_password: and345
 glance_password: and345 
 region: RegionOne
 demo_user: and345
+nova_api_password: and345
+nova_password: and345
+nova_cell0_password: and345
+nova_user: and345
+placement_user: and345

@@ -44,3 +44,13 @@
 
 - name: start glance registry
   service: name=openstack-glance-registry state=started
+
+
+- name: start nova
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+    - openstack-nova-api
+    - openstack-nova-consoleauth
+    - openstack-nova-scheduler
+    - openstack-nova-conductor
+    - openstack-nova-novncproxy

@@ -3,3 +3,4 @@ demo_user_pass: and345
 keystone_password: and345
 glance_password: and345 
 region: RegionOne
+demo_user: and345

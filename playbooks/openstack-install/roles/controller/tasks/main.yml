@@ -1,6 +1,24 @@
 
   
 ---
+##########################################################################################################################
+# Openstack Configuration automated using Ansible. The Openstack official guide and Ansible mod has been used to prepare #
+# this playbook.   
+#                                                                                                                        #
+#  Steps to run the playbook: cd ~/ansible_practice/playbooks/openstack-install/                                                                                                                      #
+#                             ansible-playbook playbook.yml -u root -i hosts                                                                                          #
+#                                                                                                                        #
+#  This has been tested on CentOs 7                                                                                                                       #
+#                                                                                                                        #
+#                                                                                                                        #  
+#                                                                                                                        #
+#                                                                                                                        #
+#  - John Lam                                                                                                                      #
+#                                                                                                                        #
+##############################################################################################################################
+
+
+
 
 
 - name: Replace default /etc/hosts file with configured hosts file from templates
@@ -163,11 +181,11 @@
   command: systemctl enable httpd.service
   notify: start httpd
 
-# - command: ln -s /usr/share/keystone/wsgi-keystone.conf /etc/httpd/conf.d/ 
+- shell: ls -l /etc/httpd/conf.d/ | grep wsgi-keystone.conf || ln -s /usr/share/keystone/wsgi-keystone.conf /etc/httpd/conf.d/
 #   ignore_errors: yes
 
 
-################################## CREATING OPENSTACK PROJECT USERS AND ROLES ###################################################
+################################################# CREATING OPENSTACK PROJECT USERS AND ROLES ###################################################
 
 - template: src=admin-openrc.sh dest=/root/ owner=root mode=0600
 
@@ -180,7 +198,7 @@
   ignore_errors: yes
   
 - name: Creating a user named 'demo'
-  shell: source /root/admin-openrc.sh && openstack user list| grep 'demo' || openstack user create --password and345 demo
+  shell: source /root/admin-openrc.sh && openstack user list| grep 'demo' || openstack user create --password {{demo_user}} demo
   ignore_errors: yes
   
 - name: Creating a role named 'user'
@@ -199,6 +217,7 @@
   raw: unset OS_AUTH_URL OS_PASSWORD
   ignore_errors: yes
 
+########################################## NEEDS TO BE FIXED. CAN ONLY RUN ONCE ####################################################################
 # - name: token for admin
 #   shell: source /root/admin-openrc.sh && openstack --os-auth-url http://controller:35357/v3  --os-project-domain-name default --os-user-domain-name default  --os-project-name admin  --os-username admin --os-password ADMIN_PASS token issue
 
@@ -289,8 +308,7 @@
 - name: Upload Image 
   shell: source /root/admin-openrc.sh && openstack image list | grep 'cirros' || openstack image create "cirros" --file cirros-0.3.5-x86_64-disk.img  --disk-format qcow2 --container-format bare  --public  < /root/cirros-0.3.5-x86_64-disk.img
 
-
-
+############################################################# END ###################################################################
 
 
 

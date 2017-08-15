@@ -1,0 +1,8 @@
+- name: start openstack-nova-compute.service
+  service: name=openstack-nova-compute state=restarted 
+
+
+- name: start neutron-linuxbridge-agent.service
+  service: neutron-linuxbridge-agent state=started
+
+

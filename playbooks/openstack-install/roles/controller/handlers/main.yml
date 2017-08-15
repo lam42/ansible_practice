@@ -36,4 +36,11 @@
   service: name=mysql state=restarted
 
 - name: start httpd
-  service: name=start state=started
+  service: name=httpd state=started
+
+
+- name: start glance api
+  service: name=openstack-glance-api state=started
+
+- name: start glance registry
+  service: name=openstack-glance-registry state=started

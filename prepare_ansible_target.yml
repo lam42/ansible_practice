@@ -4,17 +4,17 @@
 
 - hosts: all
   gather_facts: False
-  remote_user: ubuntu
+  remote_user: root
   become: yes
   become_user: root
   become_method: sudo
 
   tasks:
-    - name: Update Packages
-      raw: (apt-get update && apt-get -y upgrade)
+    #- name: Update Packages
+    #  raw: (yum upgrade)
 
     - name: Install Python 2
-      raw: test -e /usr/bin/python || (apt-get update && apt-get install -y python)
+      raw: test -e /bin/python || (yum install -y python)
 
     - name: Fancy way of doing authorized_keys
       authorized_key: user=root

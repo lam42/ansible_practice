@@ -1,4 +1,7 @@
+
+  
 ---
+
 
 - name: Replace default /etc/hosts file with configured hosts file from templates
   template: src=hosts  dest=/etc/hosts
@@ -11,31 +14,25 @@
   template: src=hostname dest=/etc/hostname
   
 
-
-
-- name: Install the latest version of Chrony 
+- name: install MySQL-python
   package:
-    name: chrony
-    state: latest
-
-- name: enable chronyd 
-  command: systemctl enable chronyd.service
-  notify: restart chronyd
+    name: MySQL-python
+    state: present
 
 
-- name: disable selinux
-  action: selinux policy=targeted state=permissive
 
 
 - name: Install the latest verion of centos-release-openstack-ocata
-  package: 
+  package:
     name: centos-release-openstack-ocata
-    state: latest 
+    state: present
 
 - name: upgrade all packages
   yum: name=* state=latest
 
-- name: COMMON | Install basic packages 
+
+
+- name: COMMON | Install basic packages
   package: name={{ item }} state=present
   with_items:
     - python-openstackclient
@@ -43,16 +40,56 @@
     - mariadb
     - mariadb-server
     - python2-PyMySQL
-    - memcached   
-    - openstack-keystone 
-    - httpd 
-    - mod_wsgi
 
-######MY SQL SECURE SETUP ALONG WITH MARIADB#######
-# - name: Add configuration
-#   template: src={{ mysql_conf_tpl }} dest={{ mysql_conf_dir[ansible_distribution] }}/{{ mysql_conf_file }} owner=root group=root mode=0644
-#   when: mysql_conf_tpl != 'change_me'
-#   notify: restart mysql
+- name: Create and edit the/etc/my.cnf.d/openstack.cnf file
+  template: src=openstack.cnf dest=/etc/my.cnf.d/openstack.cnf
+
+
+- name: enable mariadb
+  command: systemctl enable mariadb.service
+  notify: start mariadb
+  ignore_errors: yes
+
+
+- name: Install the latest verion of Rabbitmq-server
+  package:
+    name: rabbitmq-server
+    state: latest
+
+- name: enable rabbitmq-server
+  command: systemctl enable rabbitmq-server.service
+  #notify: start rabbitmq-server
+- command: systemctl start rabbitmq-server.service
+
+- name: Create rabbitmq user "openstack" and giving user full permissions.
+  rabbitmq_user:
+    user: openstack
+    password: RABBIT_PASS
+    vhost: /
+    configure_priv: .*
+    read_priv: .*
+    write_priv: .*
+    state: present
+
+- name: COMMON | Install memcached and python-memcached
+  package: name={{ item }} state=present
+  with_items:
+    - memcached
+    - python-memcached
+
+
+- name: replace line
+  lineinfile:
+    dest: /etc/sysconfig/memcached
+    regexp: '^(.*)OPTIONS="-l 127.0.0.1,::1"(.*)$'
+    line: 'OPTIONS="-l 127.0.0.1,::1,controller"'
+    backrefs: yes
+
+- name: enable memcached
+  become: root
+  command: systemctl enable memcached.service
+  notify: start memcached
+
 - name: Set root user password
   # If .my.cnf already exists, this will cause an mysql-root-password update.
   mysql_user:
@@ -68,7 +105,7 @@
    dest: "/root/.my.cnf"
    owner: root
    group: root
-   mode: 0600
+   mode: 700
 
 - name: Create a new database with name 'keystone'
   mysql_db:
@@ -76,15 +113,36 @@
     state: present
 
 
-- mysql_user:
+- name: give permissions to keystone database
+  mysql_user:
     name: keystone
-    password: KEYSTONE_DBPASS
-    host_all: yes
+    password: "{{keystone_password}}"
+    priv: '*.*:ALL,GRANT'
+    #host_all: yes
     state: present
 
-- name: Populate the Identity service database
-  command: su -s /bin/sh -c "keystone-manage db_sync" keystone
-#  warn: no
+- name: COMMON | Install openstack-keystone httpd mod_wsgi
+  package: name={{ item }} state=present
+  with_items:
+    - openstack-keystone
+    - httpd
+    - mod_wsgi
+
+- name: Edit the/etc/keystone/keystone.conf file
+  template: src=keystone.conf  dest=/etc/keystone/keystone.conf
+
+
+# - name: Populate the Identity service database
+#   become_user: sudo 
+# - name: Sync Keystone database
+# - command: keystone-manage db_sync
+#   become: yes
+#   become_user: keystone
+#   ignore_errors: yes
+
+- command: su -s /bin/sh -c "keystone-manage db_sync" keystone
+  #become_method: su 
+
 
 - name: initialize Fernet key repositories - 1
   command: keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
@@ -92,168 +150,147 @@
 - name: initialize Fernet key repositories - 2
   command: keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
 
-#- command: keystone-manage bootstrap --bootstrap-password ADMIN_PASS --bootstrap-password ADMIN_PASS 
-- command: keystone-manage bootstrap --bootstrap-password ADMIN_PASS --bootstrap-admin-url http://controller:35357/v3/ 
-- command: keystone-manage bootstrap --bootstrap-password ADMIN_PASS --bootstrap-internal-url http://controller:5000/v3/  
-- command: keystone-manage bootstrap --bootstrap-password ADMIN_PASS --bootstrap-public-url http://controller:5000/v3/ 
-- command: keystone-manage bootstrap --bootstrap-password ADMIN_PASS --bootstrap-region-id RegionOne
-
-
-# - name: Start and enable service
-#   service: name=mysql state=started enabled=yes
-
-# - include: mysql_secure_installation.yml
-#   when: mysql_secure_installation and mysql_root_password is defined
-
-- name: Adding actions in the keystone conf file 
-  template: src=keystone.conf dest=//etc/keystone/keystone.conf
-
-- name: Create and edit the/etc/my.cnf.d/openstack.cnf file
-  template: src=openstack.cnf dest=/etc/my.cnf.d/openstack.cnf
- # owner: root
- # group: root 
- # mode: 0744
-  
-
-- name: enable mariadb
-  command: systemctl enable mariadb.service
-  notify: start mariadb
-  ignore_errors: yes
-  
-#- name: still fixing 
-#  command: mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/ 
-  
-#- name: still fixing 
-#  command: mysql_secure_installation
-#  notify: start mariadb 
-
-# - name: start mariadb
-#   command: systemctl start mariadb.service
-#   ignore_errors: yes 
-
-- name: rabbitmq-server 
-  package: 
-    name: rabbitmq-server
-    state: latest 
-
-- name: enable rabbitmq-server
-  command: systemctl enable rabbitmq-server.service
-  notify: start rabbitmq-server
-
-# - name: start rabbitmq-server
-#   command: systemctl start rabbitmq-server.service
-
-#- name: add user
-#  command: rabbitmqctl add_user openstack RABBIT_PASS
-  
-#- name: set permissions
-#  command: rabbitmqctl set_permissions openstack ".*" ".*" ".*"
-#  ignore_errors: yes
-
-- rabbitmq_user:
-    user: openstack
-    password: RABBIT_PASS
-    vhost: /
-    configure_priv: .*
-    read_priv: .*
-    write_priv: .*
-    state: present
-
-
-
-- name: install memcached python-memcached
-  package: 
-    name: python-memcached
-    state: latest 
-
-- name: replace line
-  lineinfile: 
-    dest: /etc/sysconfig/memcached
-    regexp: '^(.*)OPTIONS="-l 127.0.0.1,::1"(.*)$' 
-    line: 'OPTIONS="-l 127.0.0.1,::1,controller"'
-    backrefs: yes
-  
-
-- name: enable memcached
-  command: sudo systemctl enable memcached.service 
- # warn: no
-  notify: start memcached
-
-
-
+- command: keystone-manage bootstrap --bootstrap-password ADMIN_PASS --bootstrap-admin-url http://controller:35357/v3/  --bootstrap-internal-url http://controller:5000/v3/  --bootstrap-public-url http://controller:5000/v3/  --bootstrap-region-id RegionOne
+ 
 
 - name: Adding ServerName "controller" to httpd.conf file
   lineinfile:
     path: /etc/httpd/conf/httpd.conf
     line: 'ServerName controller'
 
-- name: Create a link to the /usr/share/keystone/wsgi-keystone.conf file
-  file:
-    src: /usr/share/keystone/wsgi-keystone.conf
-    dest: /etc/httpd/conf.d/
-    state: link
-    force: yes
-    mode: 0755
-  ignore_errors: yes
-#  command: ln -s /usr/share/keystone/wsgi-keystone.conf /etc/httpd/conf.d/ 
 
-- name: Enable httpd service 
+- name: enable httpd
   command: systemctl enable httpd.service
-  notify: start httpd 
+  notify: start httpd
+
+# - command: ln -s /usr/share/keystone/wsgi-keystone.conf /etc/httpd/conf.d/ 
+#   ignore_errors: yes
 
 
-# - shell: export OS_USERNAME=admin
-# - shell: export OS_PASSWORD=ADMIN_PASS
-# - shell: export OS_PROJECT_NAME=admin
-# - shell: export OS_USER_DOMAIN_NAME=Default
-# - shell: export OS_PROJECT_DOMAIN_NAME=Default
-# - shell: export OS_AUTH_URL=http://controller:35357/v3 $ export OS_IDENTITY_API_VERSION=3
+################################## CREATING OPENSTACK PROJECT USERS AND ROLES ###################################################
+
+- template: src=admin-openrc.sh dest=/root/ owner=root mode=0600
+
+- name: Creating a project named 'Service'
+  shell: source /root/admin-openrc.sh && openstack project list | grep 'service' || openstack project create --domain default  --description "Service Project" service
+  ignore_errors: yes
+  
+- name: Creating a project named 'Demo'
+  shell: source /root/admin-openrc.sh && openstack project list | grep 'demo' || openstack project create --domain default  --description "Demo Project" demo
+  ignore_errors: yes
+  
+- name: Creating a user named 'demo'
+  shell: source /root/admin-openrc.sh && openstack user list| grep 'demo' || openstack user create --password and345 demo
+  ignore_errors: yes
+  
+- name: Creating a role named 'user'
+  shell: source /root/admin-openrc.sh && openstack role list | grep 'user' || openstack role create user 
+  ignore_errors: yes
+ 
+- name: Add the user role to the demo user of the demo project
+  shell: source /root/admin-openrc.sh && openstack role add --project demo --user demo user 
+  ignore_errors: yes
+ 
+- name: Replace default /etc/keystone/keystone-paste.ini file with configured 'keystone-paste.ini' file from templates
+  template: src=keystone-paste.ini dest=/etc/keystone/keystone-paste.ini
+  
+
+- name: Unset unset OS_AUTH_URL OS_PASSWORD
+  raw: unset OS_AUTH_URL OS_PASSWORD
+  ignore_errors: yes
+
+# - name: token for admin
+#   shell: source /root/admin-openrc.sh && openstack --os-auth-url http://controller:35357/v3  --os-project-domain-name default --os-user-domain-name default  --os-project-name admin  --os-username admin --os-password ADMIN_PASS token issue
+
+# - name: token for demo
+#   shell: source /root/admin-openrc.sh && openstack --os-auth-url http://controller:5000/v3  --os-project-domain-name default --os-user-domain-name default  --os-project-name demo --os-username demo --os-password and345 token issue
 
 
-#########OPENSTACK DOMAIN CREATION###########
+##################################################### GLANCE CONFIG ##############################################################
 
-
-- name: Creating OPENSTACK Service Project
-  os_project:
-    cloud: mycloud
+- name: Create a new database with name 'glance'
+  mysql_db:
+    name: glance
     state: present
-    name: service
-    description: Service Project 
-    domain_id: default
-    enabled: True
 
 
-- name: Creating OPENSTACK Demo Project
-  os_project:
-    cloud: mycloud
+- name: give permissions to keystone database
+  mysql_user:
+    name: glance
+    password: and345
+    priv: '*.*:ALL,GRANT'
     state: present
-    name: demo
-    description: Demo Project 
-    domain_id: default
-    enabled: True
 
 
-- name: Create the demo user 
-  os_user:
-    cloud: mycloud
+- name: give permissions to keystone database
+  mysql_user:
+    name: glance
+    password: and345
+    priv: '*.*:ALL,GRANT'
+    host_all: yes
     state: present
-    name: demouser
-    password: "{{demo_user_pass}}"
-    domain: default
-    default_project: demo
 
-- name: Create user role 
-  os_keystone_role:
-    cloud: mycloud
+
+
+- name: create glance user
+  shell: source /root/admin-openrc.sh && openstack user list| grep 'glance' || openstack user create --domain default --password and345 glance
+
+
+- name: Add theadmin role to the glance user andservice  project
+  shell: source /root/admin-openrc.sh && openstack role add --project service --user glance admin
+
+
+- name: Create a glance service entity 
+  shell: source /root/admin-openrc.sh && openstack service list | grep 'glance' || openstack service create --name glance  --description "OpenStack Image" image
+
+
+# - name: create end points for public internal and admin ####NEEDS MORE WORK########
+#   shell: source /root/admin-openrc.sh && openstack endpoint create --region RegionOne  image public http://controller:9292
+# - shell: source /root/admin-openrc.sh && openstack endpoint create --region RegionOne  image internal http://controller:9292
+# - shell: source /root/admin-openrc.sh && openstack endpoint create --region RegionOne  image admin http://controller:9292
+
+
+
+- name: Install openstack-glance 
+  package:
+    name: openstack-glance
     state: present
-    name: user 
 
-- name: Add the user role to the demo user of thedemo project
-  os_user_role:
-    cloud: mycloud
-    user: demo
-    role: user
-    project: demo
+
+- name: Replace /etc/glance/glance-api.conf wih template conf file
+  template: src=glance-api.conf  dest=/etc/glance/glance-api.conf
+
+- name: Replace /etc/glance/glance-registry.conf wih template conf file
+  template: src=glance-registry.conf  dest=/etc/glance/glance-registry.conf
+
+
+- name: Populate the image database
+  command: su -s /bin/sh -c "glance-manage db_sync" glance
+  ignore_errors: yes 
+
+
+- name: enable glance api serivce 
+  command: systemctl enable openstack-glance-api.service 
+
+
+- command: systemctl start openstack-glance-api.service
+
+
+- name: enable glance register service 
+  command: systemctl enable openstack-glance-registry.service
+  
+- command: systemctl start openstack-glance-registry.service
+
+- name: Download Image 
+  get_url: url=http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img dest=/root/cirros-0.3.5-x86_64-disk.img mode=0440
+
+- name: Upload Image 
+  shell: source /root/admin-openrc.sh && openstack image list | grep 'cirros' || openstack image create "cirros" --file cirros-0.3.5-x86_64-disk.img  --disk-format qcow2 --container-format bare  --public  < /root/cirros-0.3.5-x86_64-disk.img
+
+
+
+
+
 
 
 

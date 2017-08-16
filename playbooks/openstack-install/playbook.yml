@@ -1,7 +1,20 @@
 ---
 - name: Installing Openstack on the controller 
-  hosts: all 
+  hosts: controller 
   #connection: local  
   remote_user: root
   roles:
+    - controller 
+    
+
+
+- name: Installing Openstack on the compute node 
+  hosts: compute
+  remote_user: root 
+  roles:
     - compute 
+
+
+
+    
+    

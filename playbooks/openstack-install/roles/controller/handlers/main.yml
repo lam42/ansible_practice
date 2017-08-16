@@ -54,3 +54,27 @@
     - openstack-nova-scheduler
     - openstack-nova-conductor
     - openstack-nova-novncproxy
+
+
+
+- name: start neutron 
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+    - neutron-server.service
+    - neutron-linuxbridge-agent
+    - neutron-dhcp-agent.service
+    - neutron-metadata-agent.service
+    - neutron-l3-agent.service
+    
+
+
+
+
+
+
+
+
+
+
+
+

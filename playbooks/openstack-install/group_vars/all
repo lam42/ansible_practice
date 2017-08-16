@@ -9,3 +9,5 @@ nova_password: and345
 nova_cell0_password: and345
 nova_user: and345
 placement_user: and345
+neutron_password: and345
+neutron_user: and345

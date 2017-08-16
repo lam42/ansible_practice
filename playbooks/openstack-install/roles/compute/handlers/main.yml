@@ -3,6 +3,6 @@
 
 
 - name: start neutron-linuxbridge-agent.service
-  service: neutron-linuxbridge-agent state=started
+  service: name=neutron-linuxbridge-agent state=started
 
 

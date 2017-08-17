@@ -34,14 +34,13 @@
   command: systemctl enable libvirtd.service openstack-nova-compute.service
   ignore_errors: yes 
 
+- command: systemctl start libvirtd.service openstack-nova-compute.service
 
 
+- name: enable openstack-nova-compute service
+  command: systemctl enable openstack-nova-compute.service
 
-# - name: enable openstack-nova-compute service
-#   command: systemctl enable openstack-nova-compute.service
-  
-
-
+- command: systemctl start openstack-nova-compute.service  
 
 - name: start openstack-nova-compute.service
   command: systemctl start libvirtd.service openstack-nova-compute.service
@@ -51,11 +50,8 @@
 
 
 
-
-
-  
-# - name: Replace default /etc/neutron/neutron.conf file with configured neutron.conf file from templates
-#   template: src=neutron.conf dest=/etc/neutron/neutron.conf 
+- name: Replace default /etc/neutron/neutron.conf file with configured neutron.conf file from templates
+  template: src=neutron.conf dest=/etc/neutron/neutron.conf 
 
 # - name: Replace default /etc/neutron/plugins/ml2/linuxbridge_agent.ini with configure linuxbridge_agent.ini file from templates 
 #   templates: src= linuxbridge_agent.ini dest= /etc/neutron/plugins/ml2/linuxbridge_agent.ini
@@ -63,9 +59,23 @@
 
 
 # - name: Replace default /etc/neutron/plugins/ml2/linuxbridge_agent.ini with configure linuxbridge_agent.ini file from templates 
-#   templates: src= linuxbridge_agent.ini dest= /etc/neutron/plugins/ml2/linuxbridge_agent.ini
+#   templates: src=linuxbridge_agent.ini dest=/etc/neutron/plugins/ml2/linuxbridge_agent.ini
 
-# - name: Restart openstack-nova-compute.service 
-#   notify: restart openstack-nova-compute
-#   gnore_errors: yes
+- name: Restart openstack-nova-compute.service 
+  command: systemctl start openstack-nova-compute.service
+  ignore_errors: yes
+
+
+
+- command: systemctl restart openstack-nova-compute.service￼         
+- command: systemctl enable neutron-linuxbridge-agent.service 
+- command: systemctl start neutron-linuxbridge-agent.service
+
+
+
+
+
+
+
+
 

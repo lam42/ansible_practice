@@ -27,27 +27,18 @@
 - name: Replace default /etc/hostname file with configured hostname file from templates
   template: src=hostname dest=/etc/hostname
   
-
-
 - name: install MySQL-python
   package:
     name: MySQL-python
     state: present
-
-
-
 
 - name: Install the latest verion of centos-release-openstack-ocata
   package:
     name: centos-release-openstack-ocata
     state: present
 
-
-
 - name: upgrade all packages
   yum: name=* state=latest
-
-
 
 - name: COMMON | Install basic packages
   package: name={{ item }} state=present
@@ -61,12 +52,11 @@
 - name: Create and edit the/etc/my.cnf.d/openstack.cnf file
   template: src=openstack.cnf dest=/etc/my.cnf.d/openstack.cnf
 
-
 - name: enable mariadb
   command: systemctl enable mariadb.service
   notify: start mariadb
+  tags: systemctl 
   ignore_errors: yes
-
 
 - name: Install the latest verion of Rabbitmq-server
   package:
@@ -75,8 +65,8 @@
 
 - name: enable rabbitmq-server
   command: systemctl enable rabbitmq-server.service
-  #notify: start rabbitmq-server
-- command: systemctl start rabbitmq-server.service
+  notify: start rabbitmq-server
+  tags: systemctl
 
 - name: Create rabbitmq user "openstack" and giving user full permissions.
   rabbitmq_user:
@@ -106,6 +96,7 @@
   become: root
   command: systemctl enable memcached.service
   notify: start memcached
+  tags: systemctl
 
 - name: Set root user password
   # If .my.cnf already exists, this will cause an mysql-root-password update.
@@ -139,7 +130,6 @@
     state: present
   tags: database
 
-
 - name: give permissions to keystone database
   mysql_user:
     name: keystone
@@ -148,7 +138,6 @@
     host: '%'
     state: present
   tags: database
-
 
 - name: COMMON | Install openstack-keystone httpd mod_wsgi
   package: name={{ item }} state=present
@@ -172,7 +161,6 @@
 - command: su -s /bin/sh -c "keystone-manage db_sync" keystone
   #become_method: su 
 
-
 - name: initialize Fernet key repositories - 1
   command: keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
 
@@ -181,19 +169,18 @@
 
 - command: keystone-manage bootstrap --bootstrap-password ADMIN_PASS --bootstrap-admin-url http://controller:35357/v3/  --bootstrap-internal-url http://controller:5000/v3/  --bootstrap-public-url http://controller:5000/v3/  --bootstrap-region-id RegionOne
  
-
 - name: Adding ServerName "controller" to httpd.conf file
   lineinfile:
     path: /etc/httpd/conf/httpd.conf
     line: 'ServerName controller'
 
-
 - name: enable httpd
   command: systemctl enable httpd.service
   notify: start httpd
+  tags: systemctl
 
 - shell: ls -l /etc/httpd/conf.d/ | grep wsgi-keystone.conf || ln -s /usr/share/keystone/wsgi-keystone.conf /etc/httpd/conf.d/
-#   ignore_errors: yes
+  ignore_errors: yes
 
 
 ################################################# CREATING OPENSTACK PROJECT USERS AND ROLES ###################################################
@@ -234,8 +221,6 @@
 
 # - name: token for demo
 #   shell: source /root/admin-openrc.sh && openstack --os-auth-url http://controller:5000/v3  --os-project-domain-name default --os-user-domain-name default  --os-project-name demo --os-username demo --os-password and345 token issue
-
-
 ##################################################### GLANCE CONFIG ##############################################################
 
 - name: Create a new database with name 'glance'
@@ -262,14 +247,11 @@
     state: present
   tags: database
 
-
 - name: create glance user
   shell: source /root/admin-openrc.sh && openstack user list| grep 'glance' || openstack user create --domain default --password and345 glance
 
-
 - name: Add theadmin role to the glance user andservice  project
   shell: source /root/admin-openrc.sh && openstack role add --project service --user glance admin
-
 
 - name: Create a glance service entity 
   shell: source /root/admin-openrc.sh && openstack service list | grep 'image' || openstack service create --name glance  --description "OpenStack Image" image
@@ -281,14 +263,10 @@
 - shell: source /root/admin-openrc.sh && openstack endpoint list | grep {{ SERVICE_ID.stdout }} || openstack endpoint create  --region  {{ region }} {{ SERVICE_ID.stdout }} internal http://controller:9292 
 - shell: source /root/admin-openrc.sh && openstack endpoint list | grep {{ SERVICE_ID.stdout }} || openstack endpoint create  --region  {{ region }} {{ SERVICE_ID.stdout }} admin http://controller:9292 
 
-
-
-
 - name: Install openstack-glance 
   package:
     name: openstack-glance
     state: present
-
 
 - name: Replace /etc/glance/glance-api.conf wih template conf file
   template: src=glance-api.conf  dest=/etc/glance/glance-api.conf
@@ -296,23 +274,20 @@
 - name: Replace /etc/glance/glance-registry.conf wih template conf file
   template: src=glance-registry.conf  dest=/etc/glance/glance-registry.conf
 
-
 - name: Populate the image database
   command: su -s /bin/sh -c "glance-manage db_sync" glance
+  tags: database
   ignore_errors: yes 
-
 
 - name: enable glance api serivce 
   command: systemctl enable openstack-glance-api.service 
-
-
-- command: systemctl start openstack-glance-api.service
-
+  notify: start openstack-glance-api
+  tags: systemctl
 
 - name: enable glance register service 
   command: systemctl enable openstack-glance-registry.service
-  
-- command: systemctl start openstack-glance-registry.service
+  notify: start openstack-glance-registry
+  tags: systemctl 
 
 - name: Download Image 
   get_url: url=http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img dest=/root/cirros-0.3.5-x86_64-disk.img mode=0440
@@ -351,7 +326,6 @@
     state: present
   tags: database
 
-
 - name: Create a new database with name 'nova'
   mysql_db:
     name: nova
@@ -374,7 +348,6 @@
     priv: '*.*:ALL,GRANT'
     password: "{{ nova_password }}" 
   tags: database
-
 
 - name: Create a new database with name 'nova_cell0'
   mysql_db:
@@ -408,12 +381,9 @@
   shell: source /root/admin-openrc.sh && openstack user list| grep 'nova' || openstack user create --password {{nova_user}} nova
   ignore_errors: yes
 
-
-
 - name: Add the admin role to nova user 
   shell: source /root/admin-openrc.sh && openstack role add --project service --user nova admin
   ignore_errors: yes
-
 
 - name: Create a nova service entity 
   shell: source /root/admin-openrc.sh && openstack service list | grep 'compute' || openstack service create --name nova  --description "OpenStack Compute" compute
@@ -432,12 +402,9 @@
   shell: source /root/admin-openrc.sh && openstack user list| grep 'placement' || openstack user create --password {{placement_user}} placement
   ignore_errors: yes
 
-
-
 - name: Add the admin role to placement user 
   shell: source /root/admin-openrc.sh && openstack role add --project service --user placement admin
   ignore_errors: yes
-
 
 - name: Create a placement service entity 
   shell: source /root/admin-openrc.sh && openstack service list | grep 'placement' || openstack service create --name placement  --description "PLACEMENT API" placement
@@ -449,10 +416,7 @@
 - shell: source /root/admin-openrc.sh && openstack endpoint list | grep {{ SERVICE_ID.stdout }} || openstack endpoint create  --region  {{ region }} {{ SERVICE_ID.stdout }} internal http://controller:8778
 - shell: source /root/admin-openrc.sh && openstack endpoint list | grep {{ SERVICE_ID.stdout }} || openstack endpoint create  --region  {{ region }} {{ SERVICE_ID.stdout }} admin http://controller:8778  
 
-
-
 ###### INSTALL PACKAGES 
-
 
 - name: COMMON | Install Nova packages
   package: name={{ item }} state=present
@@ -464,26 +428,19 @@
     - openstack-nova-scheduler
     - openstack-nova-placement-api
 
-
-
-
 - name: Replace default /etc/nova/nova.conf file with configured 'nova.conf' file from templates
   template: src=nova.conf dest=/etc/nova/nova.conf
   
-
-
 - name: Replace default 00-nova-placement-api.conf file with the file from templates
   template: src=00-nova-placement-api.conf dest=/etc/httpd/conf.d/00-nova-placement-api.conf
 
-
 - name: Restart httpd
-  command: systemctl restart httpd 
+  command: systemctl restart httpd
+  tags: systemctl  
 
 - name: Populate the nova-api database
   command: su -s /bin/sh -c "nova-manage api_db sync" nova
   ignore_errors: yes 
-
-
 
 - name: Register the cell0 database 
   command: su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova
@@ -497,16 +454,11 @@
   ignore_errors: yes 
   notify: start nova
 
-##################################################### END #################################################################
-
+######################################################## END #################################################################
 
 ################################################### NEUTRON CONFIG ########################################################
 
-
-
 ##### NEUTRON DATABASE 
-
-
 
 - name: Create a new database with name 'glance'
   mysql_db:
@@ -533,18 +485,13 @@
   tags: database
 
 
-
-
 - name: Creating a user named 'neutron'
   shell: source /root/admin-openrc.sh && openstack user list| grep 'network' || openstack user create --password {{neutron_user}} neutron
   ignore_errors: yes
 
-
-
 - name: Add the admin role to neutron user 
   shell: source /root/admin-openrc.sh && openstack role add --project service --user neutron admin
   ignore_errors: yes
-
 
 - name: Create a neutron service entity 
   shell: source /root/admin-openrc.sh && openstack service list | grep 'network' || openstack service create --name nova  --description "OpenStack Networking" network
@@ -568,28 +515,71 @@
 - name: Replace default /etc/neutron/neutron.conf file with configured 'neutron.conf' file from templates
   template: src=neutron.conf dest=/etc/neutron/neutron.conf
   
-
-
-
 - name: Replace default /etc/neutron/plugins/ml2/ml2_conf.ini file with configured 'ml2_conf.ini' file from templates
   template: src=ml2_conf.ini dest=/etc/neutron/plugins/ml2/ml2_conf.ini
   
-
-
-
 - name: Replace default /etc/neutron/plugins/ml2/linuxbridge_agent.ini file with configured 'linuxbridge_agent.ini' file from templates
   template: src=linuxbridge_agent.ini dest=/etc/neutron/plugins/ml2/linuxbridge_agent.ini
 
-
 - name: Replace default /etc/neutron/l3_agent.ini file with configured 'l3_agent.ini' file from templates
   template: src=l3_agent.ini dest=/etc/neutron/l3_agent.ini
-
 
 - name: Replace default /etc/neutron/metadata_agent.ini file with configured 'metadata_agent.ini' file from templates
   template: src=metadata_agent.ini dest=/etc/neutron/metadata_agent.ini
 
 - shell: ls -l /etc/neutron/plugin.ini | grep ml2_conf.ini || ln -s /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugin.ini
 
-- shell: su -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf  --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron
+# - shell: su -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf  --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron
+
+- command: neutron-db-manage --config-file /etc/neutron/neutron.conf  --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head
+  become: yes
+  become_user: neutron
+  ignore_errors: yes
+  tags: test
+
+
+
+
+- name: restart openstack-nova-api.service 
+  command: systemctl restart openstack-nova-api.service
+  notify: start neutron
+  tags: systemctl
+
+
+
+
+- os_project:
+    cloud: mycloud
+    state: present
+    name: crazy
+    description: demodescription
+    domain_id: default
+    enabled: True
+    tags: openstack
+
+
+- os_project:
+    cloud: mycloud
+    state: absent
+    name: demoprojec
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

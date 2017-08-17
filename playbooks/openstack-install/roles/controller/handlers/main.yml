@@ -39,10 +39,10 @@
   service: name=httpd state=started
 
 
-- name: start glance api
+- name: start openstack-glance-api
   service: name=openstack-glance-api state=started
 
-- name: start glance registry
+- name: start openstack-glance-registry
   service: name=openstack-glance-registry state=started
 
 

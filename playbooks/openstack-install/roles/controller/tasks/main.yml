@@ -548,20 +548,20 @@
 
 
 
-- os_project:
-    cloud: mycloud
-    state: present
-    name: crazy
-    description: demodescription
-    domain_id: default
-    enabled: True
-    tags: openstack
+# - os_project:
+#     cloud: mycloud
+#     state: present
+#     name: crazy
+#     description: demodescription
+#     domain_id: default
+#     enabled: True
+#     tags: openstack
 
 
-- os_project:
-    cloud: mycloud
-    state: absent
-    name: demoprojec
+# - os_project:
+#     cloud: mycloud
+#     state: absent
+#     name: demoprojec
 
 
 

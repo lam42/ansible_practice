@@ -1,0 +1,10 @@
+---
+- name: Managing VMWARE VSPHERE CLIENT
+  hosts: all 
+  gather_facts: false
+  remote_user: root
+  roles:
+    - common 
+    
+
+

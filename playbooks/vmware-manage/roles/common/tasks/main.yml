@@ -1,0 +1,63 @@
+--- 
+- name: create the VM
+  vmware_guest:
+    hostname: 129.119.125.37
+    username: administrator@vsphere.local
+    password: Dcnd@$mu123
+    validate_certs: no
+    esxi_hostname: 129.119.125.154
+    datacenter: DCND
+      # folder: testvms
+    name: testvm_2
+    state: poweredon
+    guest_id: centos64Guest
+    disk:
+    - size_gb: 30
+      type: thin
+      datastore: datastore1
+      hardware:
+      memory_mb: 4098
+      num_cpus: 8
+      scsi: paravirtual
+      # networks:
+      # - name: VM Network
+      #   ip: 192.168.1.100
+      #   netmask: 255.255.255.0
+      #   mac: 'aa:bb:dd:aa:00:14'
+    template: CentOs-7
+    wait_for_ip_address: yes
+  register: deploy
+
+
+
+
+# # Clone a VM from Template and customize
+#   - name: Clone template and customize
+#     vmware_guest:
+#       hostname: 129.119.125.37
+#       username: administrator@vsphere.local
+#       password: Dcnd@$mu123
+#       validate_certs: no
+#       datacenter: datacenter
+#       cluster: cluster
+#       name: testvm-2
+#       template: CentOs-7
+#       # networks:
+#       # - name: VM Network
+#       #   ip: 192.168.1.100
+#       #   netmask: 255.255.255.0
+#       #   gateway: 192.168.1.1
+#       #   mac: 'aa:bb:dd:aa:00:14'
+#       #   domain: my_domain
+#       #   dns_servers:
+#       #   - 192.168.1.1
+#       #   - 192.168.1.2
+#       # customization:
+#       #   autologon: True
+#       #   dns_servers:
+#       #   - 192.168.1.1
+#       #   - 192.168.1.2
+#       #   domain: my_domain
+#       #   password: new_vm_password
+#       #   runonce:
+#       #   - powershell.exe -ExecutionPolicy Unrestricted -File C:\Windows\Temp\Enable-WinRM.ps1 -ForceNewSSLCert

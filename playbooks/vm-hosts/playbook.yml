@@ -1,0 +1,8 @@
+---
+- name: manging vm-hosts for all lab batches 
+  hosts: all
+  #connection: local  
+  remote_user: root
+  roles:
+    - common 
+    

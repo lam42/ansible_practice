@@ -1,11 +1,27 @@
 --- 
+
+
+# - name: Create Datacenter
+#   local_action:
+#     module: vmware_datacenter
+#     hostname: 129.119.125.37
+#     username: administrator@vsphere.local
+#     validate_certs: False
+#     password: Dcnd@$mu123
+#     datacenter_name: "TEST-DCDN"
+#     state: present
+
+
+
+
+
 - name: create the VM
   vmware_guest:
     hostname: 129.119.125.37
     username: administrator@vsphere.local
-    password: Dcnd@$mu123
-    validate_certs: no
-    esxi_hostname: 129.119.125.154
+    password: Dcnd@$mu124
+    validate_certs: no 
+    esxi_hostname: 129.119.125.44
     datacenter: DCND
       # folder: testvms
     name: testvm_2
@@ -14,7 +30,7 @@
     disk:
     - size_gb: 30
       type: thin
-      datastore: datastore1
+      datastore: SAS-Host3
       hardware:
       memory_mb: 4098
       num_cpus: 8
@@ -24,7 +40,7 @@
       #   ip: 192.168.1.100
       #   netmask: 255.255.255.0
       #   mac: 'aa:bb:dd:aa:00:14'
-    template: CentOs-7
+    template: centos
     wait_for_ip_address: yes
   register: deploy
 

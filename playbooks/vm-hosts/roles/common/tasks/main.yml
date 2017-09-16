@@ -1,3 +1,10 @@
+
+- lineinfile:
+    path: /etc/resolv.conf 
+    line: 'nameserver 8.8.8.8'
+
+
+
 - name: COMMON | Install basic packages
   package: name={{ item }} state=present
   with_items:
@@ -9,7 +16,8 @@
 
 
 
-- name: install the ntop rpm from a remote repo
-  yum:
-    name:  https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-    state: present
+# - name: install the ntop rpm from a remote repo
+#   yum:
+#     name:  https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+#     state: present
+

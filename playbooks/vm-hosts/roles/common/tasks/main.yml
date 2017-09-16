@@ -3,4 +3,13 @@
   with_items:
     - nmap
     - nano
-   
+    - net-tools
+    # - redis 
+    # - hiredis
+
+
+
+- name: install the ntop rpm from a remote repo
+  yum:
+    name:  https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    state: present

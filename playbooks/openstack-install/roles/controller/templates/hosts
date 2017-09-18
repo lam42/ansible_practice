@@ -1,11 +1,5 @@
 # controller
-192.168.56.11	controller
+10.44.104.11	controller
 # compute1
-192.168.56.31 	compute1
-# block1
-10.0.0.41	block1
-# object1
-10.0.0.51 	object1
-# object2
-10.0.0.52	object2
+10.44.104.10 	compute1
 

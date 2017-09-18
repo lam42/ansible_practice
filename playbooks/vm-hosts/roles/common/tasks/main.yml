@@ -11,6 +11,7 @@
     - nmap
     - nano
     - net-tools
+    - git 
     # - redis 
     # - hiredis
 

@@ -1,5 +1,5 @@
 [mysqld]
-bind-address = 192.168.56.11
+bind-address = 192.168.10.11
 default-storage-engine = innodb
 innodb_file_per_table = on
 max_connections = 4096

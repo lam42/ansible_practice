@@ -8,11 +8,11 @@
     
 
 
-- name: Installing Openstack on the compute node 
-  hosts: compute
-  remote_user: root 
-  roles:
-    - compute 
+# - name: Installing Openstack on the compute node 
+#   hosts: compute
+#   remote_user: root 
+#   roles:
+#     - compute 
 
 
 

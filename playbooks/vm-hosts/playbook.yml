@@ -2,7 +2,8 @@
 - name: manging vm-hosts for all lab batches 
   hosts: all
   #connection: local  
+  #gather_facts: False
   remote_user: root
   roles:
-    - common 
+    - web  
     

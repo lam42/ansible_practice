@@ -12,9 +12,15 @@
     - nano
     - net-tools
     - git 
-    # - redis 
-    # - hiredis
+    - nodejs 
+    - npm
+    - epel-release 
 
+- name: Install tldr 
+  npm:
+    name: tldr 
+    global: yes
+    state: present
 
 
 # - name: install the ntop rpm from a remote repo

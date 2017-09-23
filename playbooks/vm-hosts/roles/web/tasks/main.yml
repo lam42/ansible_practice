@@ -1,0 +1,13 @@
+---
+
+# Deploy a guest from a template
+- vsphere_guest:
+    validate_certs: no 
+    vcenter_hostname: 10.44.104.19
+    username: administrator@vsphere.local
+    password: Dcnd@$mu123
+    guest: newvm001
+    from_template: yes
+    template_src: test
+    cluster: DCND-cluster
+   

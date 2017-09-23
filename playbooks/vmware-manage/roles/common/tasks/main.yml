@@ -14,35 +14,31 @@
 
 
 
-
-- name: create the VM
+- name: Clone a VM from Template and customize
   vmware_guest:
-    hostname: 129.119.125.37
+    hostname: 10.44.104.2
     username: administrator@vsphere.local
-    password: Dcnd@$mu124
-    validate_certs: no 
-    esxi_hostname: 129.119.125.44
+    password: Dcnd@$mu123
+    validate_certs: no
     datacenter: DCND
-      # folder: testvms
-    name: testvm_2
-    state: poweredon
-    guest_id: centos64Guest
-    disk:
-    - size_gb: 30
-      type: thin
-      datastore: SAS-Host3
-      hardware:
-      memory_mb: 4098
-      num_cpus: 8
-      scsi: paravirtual
-      # networks:
-      # - name: VM Network
-      #   ip: 192.168.1.100
-      #   netmask: 255.255.255.0
-      #   mac: 'aa:bb:dd:aa:00:14'
-    template: centos
-    wait_for_ip_address: yes
-  register: deploy
+    cluster: DCND-cluster
+    name: testvm-2
+    template: test
+    networks:
+    - name: VM Network
+      ip: 10.44.104.200
+      netmask: 255.255.255.0
+      gateway: 10.44.104.1.
+      #mac: aa:bb:dd:aa:00:14
+      #domain: my_domain
+      dns_servers:
+      - 8.8.8.8
+      - 10.44.104.25
+ 
+    
+      
+  delegate_to: localhost
+
 
 
 

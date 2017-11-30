@@ -1,0 +1,34 @@
+---
+- name: Batch - 2 
+  hosts: allserver
+  user: root
+  become: yes
+  ignore_errors: yes
+
+  tasks:
+  
+  
+  - name: Replace openstack.cnf with empty bind ip 
+    template: src=openstack.cnf dest=/etc/my.cnf.d/openstack.cnf
+
+  - name: stop mariadb service 
+    service: name=mariadb.service state=stopped
+
+  - name: stop rabbitmqctl service 
+    service: name=rabbitmq-server.service state=stopped
+
+  - name: change the demo-openrc file on the controller
+    template: src=demo-openrc dest=/root/demo-openrc
+
+  - name: change nova.conf file  
+    # errors are my_ip are missing and error is transport password is incorrect aand3456  
+    template: src=b2-nova.conf dest=/etc/nova/nova.conf 
+
+  - name: stop nova
+    service: name={{ item }} state=stopped enabled=yes
+    with_items:
+      - openstack-nova-api.service
+      - openstack-nova-consoleauth.service
+      - openstack-nova-scheduler.service
+      - openstack-nova-conductor.service
+      - openstack-nova-novncproxy.service

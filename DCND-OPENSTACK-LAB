@@ -1,0 +1,56 @@
+
+#project list 
+ansible allservers -m shell  -a "source /root/admin-openrc && openstack project list"   -u root -i hosts
+
+
+########## openstack nova services check #############
+ansible allservers -m shell  -a "source /root/admin-openrc && systemctl status openstack-nova-api.service \
+  openstack-nova-consoleauth.service openstack-nova-scheduler.service \
+  openstack-nova-conductor.service openstack-nova-novncproxy.service | grep 'Active\|openstack'
+
+
+
+######## Openstack network agent list 
+
+
+ansible controller -m shell  -a "source /root/admin-openrc && openstack network agent list"   -u root -i hosts
+
+
+#Openstack nova service list 
+
+ansible controller -m shell  -a "source /root/admin-openrc && openstack compute service list "   -u root -i hosts
+
+
+
+
+######### Mariadb ############# 
+
+
+ansible controller -m shell  -a "systemctl start mariadb.service" -u root -i hosts
+
+ansible controller -m shell  -a "systemctl status mariadb.service | grep 'Active\|maraidb.service' " -u root -i hosts
+
+
+
+######Rabbit - mq Status Check  #####
+
+
+ansible controller  -m shell  -a "source /root/admin-openrc && openstack compute service list "   -u root -i hosts
+
+ansible controller -m shell  -a "systemctl status rabbitmq-server.service | grep 'Active\|rabbitmq-server.service - RabbitMQ broker'" -u root -i hosts
+
+
+
+
+
+tail -f /var/log/{ceilometer,neutron,nova,openvswitch}/*.log /var/log/messages
+
+######Troubleshooting logs using ansible ######
+#Compute
+ansible 10.44.104.207 -m shell  -a "tail -n 200 /var/log/{ceilometer,neutron,nova,openvswitch}/*.log /var/log/messages"   -u root -i hosts
+
+#Controller
+
+ansible 10.44.104.207 -m shell  -a "tail -n 200 /var/log/{ceilometer,cinder,glance,keystone,mysql,neutron,nova,openvswitch,rabbitmq}/*.log /var/log/messages"   -u root -i hosts
+
+
